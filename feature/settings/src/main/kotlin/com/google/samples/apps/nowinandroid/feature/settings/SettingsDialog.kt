@@ -51,7 +51,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaTextButton
@@ -71,8 +70,8 @@ import com.google.samples.apps.nowinandroid.feature.settings.SettingsUiState.Suc
 
 @Composable
 fun SettingsDialog(
+    viewModel: SettingsViewModel,
     onDismiss: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
     SettingsDialog(
@@ -318,5 +317,6 @@ private fun PreviewSettingsDialogLoading() {
 
 /* ktlint-disable max-line-length */
 private const val PRIVACY_POLICY_URL = "https://policies.google.com/privacy"
-private const val BRAND_GUIDELINES_URL = "https://developer.android.com/distribute/marketing-tools/brand-guidelines"
+private const val BRAND_GUIDELINES_URL =
+    "https://developer.android.com/distribute/marketing-tools/brand-guidelines"
 private const val FEEDBACK_URL = "https://goo.gle/nia-app-feedback"

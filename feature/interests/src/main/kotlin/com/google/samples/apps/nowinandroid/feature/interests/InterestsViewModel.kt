@@ -16,25 +16,28 @@
 
 package com.google.samples.apps.nowinandroid.feature.interests
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.arkivanov.decompose.ComponentContext
 import com.google.samples.apps.nowinandroid.core.data.repository.UserDataRepository
+import com.google.samples.apps.nowinandroid.core.decompose.utils.coroutineScope
 import com.google.samples.apps.nowinandroid.core.domain.GetFollowableTopicsUseCase
 import com.google.samples.apps.nowinandroid.core.domain.TopicSortField
 import com.google.samples.apps.nowinandroid.core.model.data.FollowableTopic
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class InterestsViewModel @Inject constructor(
+class InterestsViewModel @AssistedInject internal constructor(
+    @Assisted componentContext: ComponentContext,
     val userDataRepository: UserDataRepository,
     getFollowableTopics: GetFollowableTopicsUseCase,
-) : ViewModel() {
+) : ComponentContext by componentContext {
+
+    private val viewModelScope = coroutineScope()
 
     val uiState: StateFlow<InterestsUiState> =
         getFollowableTopics(sortBy = TopicSortField.NAME).map(
@@ -49,6 +52,11 @@ class InterestsViewModel @Inject constructor(
         viewModelScope.launch {
             userDataRepository.setTopicIdFollowed(followedTopicId, followed)
         }
+    }
+
+    @AssistedFactory
+    fun interface Factory {
+        operator fun invoke(componentContext: ComponentContext): InterestsViewModel
     }
 }
 

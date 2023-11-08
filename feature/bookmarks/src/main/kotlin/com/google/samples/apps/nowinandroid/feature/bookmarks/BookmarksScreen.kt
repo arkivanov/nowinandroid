@@ -77,11 +77,11 @@ import com.google.samples.apps.nowinandroid.core.ui.UserNewsResourcePreviewParam
 import com.google.samples.apps.nowinandroid.core.ui.newsFeed
 
 @Composable
-internal fun BookmarksRoute(
+fun BookmarksRoute(
+    viewModel: BookmarksViewModel,
     onTopicClick: (String) -> Unit,
     onShowSnackbar: suspend (String, String?) -> Boolean,
     modifier: Modifier = Modifier,
-    viewModel: BookmarksViewModel = hiltViewModel(),
 ) {
     val feedState by viewModel.feedUiState.collectAsStateWithLifecycle()
     BookmarksScreen(

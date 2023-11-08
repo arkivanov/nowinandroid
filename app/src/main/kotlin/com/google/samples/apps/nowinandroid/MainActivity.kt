@@ -24,6 +24,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
@@ -38,6 +39,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.metrics.performance.JankStats
 import androidx.profileinstaller.ProfileVerifier
+import com.arkivanov.decompose.retainedComponent
 import com.google.samples.apps.nowinandroid.MainActivityUiState.Loading
 import com.google.samples.apps.nowinandroid.MainActivityUiState.Success
 import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsHelper
@@ -78,6 +80,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var userNewsResourceRepository: UserNewsResourceRepository
 
+    @Inject
+    lateinit var rootFactory: RootComponent.Factory
+
     val viewModel: MainActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,6 +117,8 @@ class MainActivity : ComponentActivity() {
         // This also sets up the initial system bar style based on the platform theme
         enableEdgeToEdge()
 
+        val root = retainedComponent(factory = rootFactory::invoke)
+
         setContent {
             val darkTheme = shouldUseDarkTheme(uiState)
 
@@ -140,6 +147,7 @@ class MainActivity : ComponentActivity() {
                     disableDynamicTheming = shouldDisableDynamicTheming(uiState),
                 ) {
                     NiaApp(
+                        component = root,
                         networkMonitor = networkMonitor,
                         windowSizeClass = calculateWindowSizeClass(this),
                         userNewsResourceRepository = userNewsResourceRepository,
@@ -189,6 +197,7 @@ class MainActivity : ComponentActivity() {
                     status.isCompiledWithProfile -> "ProfileInstaller: is compiled with profile"
                     status.hasProfileEnqueuedForCompilation() ->
                         "ProfileInstaller: Enqueued for compilation"
+
                     else -> "Profile not compiled or enqueued"
                 },
             )

@@ -50,6 +50,7 @@ include(":core:ui")
 include(":core:testing")
 include(":core:analytics")
 include(":core:notifications")
+include(":core:decompose-utils")
 
 include(":feature:foryou")
 include(":feature:interests")

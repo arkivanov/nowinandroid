@@ -24,6 +24,7 @@ plugins {
     id("jacoco")
     alias(libs.plugins.nowinandroid.android.application.firebase)
     id("com.google.android.gms.oss-licenses-plugin")
+    id("kotlinx-serialization")
 }
 
 android {
@@ -114,12 +115,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.compose.runtime.tracing)
     implementation(libs.androidx.compose.material3.windowSizeClass)
-    implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.window.manager)
     implementation(libs.androidx.profileinstaller)
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.coil.kt)
+    implementation(libs.decompose.decompose)
+    implementation(libs.decompose.extensions.compose)
 
     // Core functions
     testImplementation(projects.core.testing)

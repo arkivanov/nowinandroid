@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaBackground
 import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaLoadingWheel
@@ -35,10 +34,10 @@ import com.google.samples.apps.nowinandroid.core.ui.FollowableTopicPreviewParame
 import com.google.samples.apps.nowinandroid.core.ui.TrackScreenViewEvent
 
 @Composable
-internal fun InterestsRoute(
+fun InterestsRoute(
+    viewModel: InterestsViewModel,
     onTopicClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: InterestsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -67,6 +66,7 @@ internal fun InterestsScreen(
                     modifier = modifier,
                     contentDesc = stringResource(id = R.string.loading),
                 )
+
             is InterestsUiState.Interests ->
                 TopicsTabContent(
                     topics = uiState.topics,
@@ -74,6 +74,7 @@ internal fun InterestsScreen(
                     onFollowButtonClick = followTopic,
                     modifier = modifier,
                 )
+
             is InterestsUiState.Empty -> InterestsEmptyScreen()
         }
     }

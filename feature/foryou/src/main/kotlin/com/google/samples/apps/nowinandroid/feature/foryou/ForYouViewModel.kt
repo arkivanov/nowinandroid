@@ -16,9 +16,7 @@
 
 package com.google.samples.apps.nowinandroid.feature.foryou
 
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.arkivanov.decompose.ComponentContext
 import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsEvent
 import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsEvent.Param
 import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsHelper
@@ -26,10 +24,15 @@ import com.google.samples.apps.nowinandroid.core.data.repository.NewsResourceQue
 import com.google.samples.apps.nowinandroid.core.data.repository.UserDataRepository
 import com.google.samples.apps.nowinandroid.core.data.repository.UserNewsResourceRepository
 import com.google.samples.apps.nowinandroid.core.data.util.SyncManager
+import com.google.samples.apps.nowinandroid.core.decompose.utils.coroutineScope
+import com.google.samples.apps.nowinandroid.core.decompose.utils.saveableStateFlow
 import com.google.samples.apps.nowinandroid.core.domain.GetFollowableTopicsUseCase
 import com.google.samples.apps.nowinandroid.core.ui.NewsFeedUiState
+import com.google.samples.apps.nowinandroid.feature.foryou.navigation.ForYouArgs
 import com.google.samples.apps.nowinandroid.feature.foryou.navigation.LINKED_NEWS_RESOURCE_ID
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,27 +42,33 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import kotlinx.serialization.builtins.serializer
 
-@HiltViewModel
-class ForYouViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+class ForYouViewModel @AssistedInject internal constructor(
+    @Assisted componentContext: ComponentContext,
+    @Assisted args: ForYouArgs,
     syncManager: SyncManager,
     private val analyticsHelper: AnalyticsHelper,
     private val userDataRepository: UserDataRepository,
     userNewsResourceRepository: UserNewsResourceRepository,
     getFollowableTopics: GetFollowableTopicsUseCase,
-) : ViewModel() {
+) : ComponentContext by componentContext {
+
+    private val viewModelScope = coroutineScope()
 
     private val shouldShowOnboarding: Flow<Boolean> =
         userDataRepository.userData.map { !it.shouldHideOnboarding }
 
-    val deepLinkedNewsResource = savedStateHandle.getStateFlow<String?>(
-        key = LINKED_NEWS_RESOURCE_ID,
-        null,
-    )
+    private val linkedNewsResourceIdFlow =
+        saveableStateFlow(
+            key = LINKED_NEWS_RESOURCE_ID,
+            serializer = String.serializer(),
+            initialValue = { args.linkedNewsResourceId },
+        )
+
+    val deepLinkedNewsResource = linkedNewsResourceIdFlow
         .flatMapLatest { newsResourceId ->
-            if (newsResourceId == null) {
+            if (newsResourceId.isEmpty()) {
                 flowOf(emptyList())
             } else {
                 userNewsResourceRepository.observeAll(
@@ -129,7 +138,7 @@ class ForYouViewModel @Inject constructor(
 
     fun onDeepLinkOpened(newsResourceId: String) {
         if (newsResourceId == deepLinkedNewsResource.value?.id) {
-            savedStateHandle[LINKED_NEWS_RESOURCE_ID] = null
+            linkedNewsResourceIdFlow.value = ""
         }
         analyticsHelper.logNewsDeepLinkOpen(newsResourceId = newsResourceId)
         viewModelScope.launch {
@@ -144,6 +153,11 @@ class ForYouViewModel @Inject constructor(
         viewModelScope.launch {
             userDataRepository.setShouldHideOnboarding(true)
         }
+    }
+
+    @AssistedFactory
+    fun interface Factory {
+        operator fun invoke(componentContext: ComponentContext, args: ForYouArgs): ForYouViewModel
     }
 }
 

@@ -18,37 +18,36 @@ package com.google.samples.apps.nowinandroid.feature.topic
 
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.samples.apps.nowinandroid.core.designsystem.component.DynamicAsyncImage
 import com.google.samples.apps.nowinandroid.core.designsystem.component.NiaBackground
@@ -69,11 +68,11 @@ import com.google.samples.apps.nowinandroid.core.ui.userNewsResourceCardItems
 import com.google.samples.apps.nowinandroid.feature.topic.R.string
 
 @Composable
-internal fun TopicRoute(
+fun TopicRoute(
+    viewModel: TopicViewModel,
     onBackClick: () -> Unit,
     onTopicClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: TopicViewModel = hiltViewModel(),
 ) {
     val topicUiState: TopicUiState by viewModel.topicUiState.collectAsStateWithLifecycle()
     val newsUiState: NewsUiState by viewModel.newUiState.collectAsStateWithLifecycle()
@@ -112,13 +111,9 @@ internal fun TopicScreen(
             state = state,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            item {
-                Spacer(Modifier.windowInsetsTopHeight(WindowInsets.safeDrawing))
-            }
             when (topicUiState) {
                 TopicUiState.Loading -> item {
                     NiaLoadingWheel(
-                        modifier = modifier,
                         contentDesc = stringResource(id = string.topic_loading),
                     )
                 }
@@ -266,6 +261,7 @@ private fun TopicBodyPreview() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopicToolbar(
     uiState: FollowableTopic,
@@ -273,34 +269,35 @@ private fun TopicToolbar(
     onBackClick: () -> Unit = {},
     onFollowClick: (Boolean) -> Unit = {},
 ) {
-    Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = 32.dp),
-    ) {
-        IconButton(onClick = { onBackClick() }) {
-            Icon(
-                imageVector = NiaIcons.ArrowBack,
-                contentDescription = stringResource(
-                    id = com.google.samples.apps.nowinandroid.core.ui.R.string.back,
-                ),
-            )
-        }
-        val selected = uiState.isFollowed
-        NiaFilterChip(
-            selected = selected,
-            onSelectedChange = onFollowClick,
-            modifier = Modifier.padding(end = 24.dp),
-        ) {
-            if (selected) {
-                Text("FOLLOWING")
-            } else {
-                Text("NOT FOLLOWING")
+    TopAppBar(
+        title = {},
+        modifier = modifier,
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+        navigationIcon = {
+            IconButton(onClick = { onBackClick() }) {
+                Icon(
+                    imageVector = NiaIcons.ArrowBack,
+                    contentDescription = stringResource(
+                        id = com.google.samples.apps.nowinandroid.core.ui.R.string.back,
+                    ),
+                )
             }
-        }
-    }
+        },
+        actions = {
+            val selected = uiState.isFollowed
+            NiaFilterChip(
+                selected = selected,
+                onSelectedChange = onFollowClick,
+                modifier = Modifier.padding(end = 24.dp),
+            ) {
+                if (selected) {
+                    Text("FOLLOWING")
+                } else {
+                    Text("NOT FOLLOWING")
+                }
+            }
+        },
+    )
 }
 
 @DevicePreviews

@@ -16,19 +16,22 @@
 
 package com.google.samples.apps.nowinandroid.feature.search
 
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.arkivanov.decompose.ComponentContext
 import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsEvent
 import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsEvent.Param
 import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsHelper
 import com.google.samples.apps.nowinandroid.core.data.repository.RecentSearchRepository
+import com.google.samples.apps.nowinandroid.core.data.repository.UserDataRepository
+import com.google.samples.apps.nowinandroid.core.decompose.utils.coroutineScope
+import com.google.samples.apps.nowinandroid.core.decompose.utils.saveableStateFlow
 import com.google.samples.apps.nowinandroid.core.domain.GetRecentSearchQueriesUseCase
 import com.google.samples.apps.nowinandroid.core.domain.GetSearchContentsCountUseCase
 import com.google.samples.apps.nowinandroid.core.domain.GetSearchContentsUseCase
 import com.google.samples.apps.nowinandroid.core.result.Result
 import com.google.samples.apps.nowinandroid.core.result.asResult
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -36,19 +39,28 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import kotlinx.serialization.builtins.serializer
 
-@HiltViewModel
-class SearchViewModel @Inject constructor(
+class SearchViewModel @AssistedInject internal constructor(
+    @Assisted componentContext: ComponentContext,
     getSearchContentsUseCase: GetSearchContentsUseCase,
     getSearchContentsCountUseCase: GetSearchContentsCountUseCase,
     recentSearchQueriesUseCase: GetRecentSearchQueriesUseCase,
     private val recentSearchRepository: RecentSearchRepository,
-    private val savedStateHandle: SavedStateHandle,
+    private val userDataRepository: UserDataRepository,
     private val analyticsHelper: AnalyticsHelper,
-) : ViewModel() {
+) : ComponentContext by componentContext {
 
-    val searchQuery = savedStateHandle.getStateFlow(key = SEARCH_QUERY, initialValue = "")
+    private val viewModelScope = coroutineScope()
+
+    private val _searchQuery =
+        saveableStateFlow(
+            key = SEARCH_QUERY,
+            serializer = String.serializer(),
+            initialValue = { "" },
+        )
+
+    val searchQuery: StateFlow<String> = _searchQuery
 
     val searchResultUiState: StateFlow<SearchResultUiState> =
         getSearchContentsCountUseCase()
@@ -92,7 +104,7 @@ class SearchViewModel @Inject constructor(
             )
 
     fun onSearchQueryChanged(query: String) {
-        savedStateHandle[SEARCH_QUERY] = query
+        _searchQuery.value = query
     }
 
     /**
@@ -114,6 +126,29 @@ class SearchViewModel @Inject constructor(
             recentSearchRepository.clearRecentSearches()
         }
     }
+
+    fun setNewsResourceViewed(newsResourceId: String, viewed: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setNewsResourceViewed(newsResourceId, viewed)
+        }
+    }
+
+    fun updateNewsResourceSaved(newsResourceId: String, isChecked: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.updateNewsResourceBookmark(newsResourceId, isChecked)
+        }
+    }
+
+    fun followTopic(followedTopicId: String, followed: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setTopicIdFollowed(followedTopicId, followed)
+        }
+    }
+
+    @AssistedFactory
+    fun interface Factory {
+        operator fun invoke(componentContext: ComponentContext): SearchViewModel
+    }
 }
 
 private fun AnalyticsHelper.logEventSearchTriggered(query: String) =
@@ -130,3 +165,4 @@ private const val SEARCH_QUERY_MIN_LENGTH = 2
 /** Minimum number of the fts table's entity count where it's considered as search is not ready */
 private const val SEARCH_MIN_FTS_ENTITY_COUNT = 1
 private const val SEARCH_QUERY = "searchQuery"
+private const val KEY_SAVED_STATE = "SAVED_STATE"

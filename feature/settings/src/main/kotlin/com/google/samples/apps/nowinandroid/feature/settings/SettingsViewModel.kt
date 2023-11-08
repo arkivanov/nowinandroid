@@ -16,14 +16,16 @@
 
 package com.google.samples.apps.nowinandroid.feature.settings
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.arkivanov.decompose.ComponentContext
 import com.google.samples.apps.nowinandroid.core.data.repository.UserDataRepository
+import com.google.samples.apps.nowinandroid.core.decompose.utils.coroutineScope
 import com.google.samples.apps.nowinandroid.core.model.data.DarkThemeConfig
 import com.google.samples.apps.nowinandroid.core.model.data.ThemeBrand
 import com.google.samples.apps.nowinandroid.feature.settings.SettingsUiState.Loading
 import com.google.samples.apps.nowinandroid.feature.settings.SettingsUiState.Success
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -31,10 +33,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@HiltViewModel
-class SettingsViewModel @Inject constructor(
+class SettingsViewModel @AssistedInject internal constructor(
+    @Assisted componentContext: ComponentContext,
     private val userDataRepository: UserDataRepository,
-) : ViewModel() {
+) : ComponentContext by componentContext {
+
+    private val viewModelScope = coroutineScope()
+
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData
             .map { userData ->
@@ -74,6 +79,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userDataRepository.setDynamicColorPreference(useDynamicColor)
         }
+    }
+
+    @AssistedFactory
+    fun interface Factory {
+        operator fun invoke(componentContext: ComponentContext): SettingsViewModel
     }
 }
 

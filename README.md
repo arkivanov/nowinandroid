@@ -1,6 +1,8 @@
 ![Now in Android](docs/images/nia-splash.jpg "Now in Android")
 
-<a href="https://play.google.com/store/apps/details?id=com.google.samples.apps.nowinandroid"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="70"></a>
+# Notes about this fork
+
+This project is basically the same as the [original](https://github.com/android/nowinandroid) (upstream) Now in Android App, but with navigation converted from [navigation-compose](https://developer.android.com/jetpack/compose/navigation) to [Decompose](https://github.com/arkivanov/Decompose), for educational purposes. The code may be out of sync with the upstream. Tests are not yet converted. 
 
 Now in Android App
 ==================

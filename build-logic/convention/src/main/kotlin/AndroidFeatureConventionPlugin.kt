@@ -29,6 +29,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
             pluginManager.apply {
                 apply("nowinandroid.android.library")
                 apply("nowinandroid.android.hilt")
+                apply("kotlinx-serialization")
             }
             extensions.configure<LibraryExtension> {
                 defaultConfig {
@@ -46,6 +47,7 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 add("implementation", project(":core:common"))
                 add("implementation", project(":core:domain"))
                 add("implementation", project(":core:analytics"))
+                add("implementation", project(":core:decompose-utils"))
 
                 add("testImplementation", kotlin("test"))
                 add("testImplementation", project(":core:testing"))
@@ -60,6 +62,9 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("androidx.lifecycle.viewModelCompose").get())
 
                 add("implementation", libs.findLibrary("kotlinx.coroutines.android").get())
+
+                add("implementation", libs.findLibrary("decompose.decompose").get())
+                add("implementation", libs.findLibrary("decompose.extensions.compose").get())
             }
         }
     }

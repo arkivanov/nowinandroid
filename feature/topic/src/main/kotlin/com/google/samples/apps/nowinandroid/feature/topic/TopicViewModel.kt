@@ -16,20 +16,21 @@
 
 package com.google.samples.apps.nowinandroid.feature.topic
 
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.arkivanov.decompose.ComponentContext
 import com.google.samples.apps.nowinandroid.core.data.repository.NewsResourceQuery
 import com.google.samples.apps.nowinandroid.core.data.repository.TopicsRepository
 import com.google.samples.apps.nowinandroid.core.data.repository.UserDataRepository
 import com.google.samples.apps.nowinandroid.core.data.repository.UserNewsResourceRepository
+import com.google.samples.apps.nowinandroid.core.decompose.utils.coroutineScope
 import com.google.samples.apps.nowinandroid.core.model.data.FollowableTopic
 import com.google.samples.apps.nowinandroid.core.model.data.Topic
 import com.google.samples.apps.nowinandroid.core.model.data.UserNewsResource
 import com.google.samples.apps.nowinandroid.core.result.Result
 import com.google.samples.apps.nowinandroid.core.result.asResult
 import com.google.samples.apps.nowinandroid.feature.topic.navigation.TopicArgs
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,17 +38,16 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class TopicViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle,
+class TopicViewModel @AssistedInject internal constructor(
+    @Assisted componentContext: ComponentContext,
+    @Assisted private val topicArgs: TopicArgs,
     private val userDataRepository: UserDataRepository,
     topicsRepository: TopicsRepository,
     userNewsResourceRepository: UserNewsResourceRepository,
-) : ViewModel() {
+) : ComponentContext by componentContext {
 
-    private val topicArgs: TopicArgs = TopicArgs(savedStateHandle)
+    private val viewModelScope = coroutineScope()
 
     val topicId = topicArgs.topicId
 
@@ -89,6 +89,11 @@ class TopicViewModel @Inject constructor(
         viewModelScope.launch {
             userDataRepository.setNewsResourceViewed(newsResourceId, viewed)
         }
+    }
+
+    @AssistedFactory
+    fun interface Factory {
+        operator fun invoke(componentContext: ComponentContext, args: TopicArgs): TopicViewModel
     }
 }
 

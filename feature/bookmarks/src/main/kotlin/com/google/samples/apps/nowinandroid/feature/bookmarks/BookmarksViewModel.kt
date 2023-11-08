@@ -19,27 +19,30 @@ package com.google.samples.apps.nowinandroid.feature.bookmarks
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.arkivanov.decompose.ComponentContext
 import com.google.samples.apps.nowinandroid.core.data.repository.UserDataRepository
 import com.google.samples.apps.nowinandroid.core.data.repository.UserNewsResourceRepository
+import com.google.samples.apps.nowinandroid.core.decompose.utils.coroutineScope
 import com.google.samples.apps.nowinandroid.core.model.data.UserNewsResource
 import com.google.samples.apps.nowinandroid.core.ui.NewsFeedUiState
 import com.google.samples.apps.nowinandroid.core.ui.NewsFeedUiState.Loading
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class BookmarksViewModel @Inject constructor(
+class BookmarksViewModel @AssistedInject internal constructor(
+    @Assisted componentContext: ComponentContext,
     private val userDataRepository: UserDataRepository,
     userNewsResourceRepository: UserNewsResourceRepository,
-) : ViewModel() {
+) : ComponentContext by componentContext {
+
+    private val viewModelScope = coroutineScope()
 
     var shouldDisplayUndoBookmark by mutableStateOf(false)
     private var lastRemovedBookmarkId: String? = null
@@ -80,5 +83,10 @@ class BookmarksViewModel @Inject constructor(
     fun clearUndoState() {
         shouldDisplayUndoBookmark = false
         lastRemovedBookmarkId = null
+    }
+
+    @AssistedFactory
+    fun interface Factory {
+        operator fun invoke(componentContext: ComponentContext): BookmarksViewModel
     }
 }
