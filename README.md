@@ -2,7 +2,7 @@
 
 # Notes about this fork
 
-This project is basically the same as the [original](https://github.com/android/nowinandroid) (upstream) Now in Android App, but with navigation converted from [navigation-compose](https://developer.android.com/jetpack/compose/navigation) to [Decompose](https://github.com/arkivanov/Decompose), for educational purposes. The code may be out of sync with the upstream. Tests are not yet converted. 
+This project is basically the same as the [original](https://github.com/android/nowinandroid) (upstream) Now in Android App, but with navigation converted from [navigation-compose](https://developer.android.com/jetpack/compose/navigation) to [Decompose](https://github.com/arkivanov/Decompose), for educational purposes. Only minimum required changes were done, for better diffs. The code may be out of sync with the upstream. Tests are not yet converted. 
 
 Now in Android App
 ==================
